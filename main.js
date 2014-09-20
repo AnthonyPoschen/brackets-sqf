@@ -3,7 +3,7 @@ define(function (require, exports, module) {
 
     var LanguageManager = brackets.getModule("language/LanguageManager");
     
-    CodeMirror.defineMode("go", function(config) {
+    CodeMirror.defineMode("sqf", function(config) {
       var indentUnit = config.indentUnit;
     
       var keywords = {
@@ -1841,7 +1841,7 @@ define(function (require, exports, module) {
       };
     });
     
-    CodeMirror.defineMIME("application/octet-stream", "sqf");
+    CodeMirror.defineMIME("text/x-sqf", "sqf");
 
     LanguageManager.defineLanguage("sqf", {
     name: "sqf",
