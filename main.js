@@ -1841,7 +1841,7 @@ define(function (require, exports, module) {
       };
     });
     
-    CodeMirror.defineMIME("text/x-sqf", "sqf");
+    CodeMirror.defineMIME("application/octet-stream", "sqf");
 
     LanguageManager.defineLanguage("sqf", {
     name: "sqf",
