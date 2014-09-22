@@ -86,12 +86,16 @@ define(function (require, exports, module) {
             this.activeToken = TokenUtils.getInitialContext(this.editor._codeMirror,cursor);
             tokenToCursor = getTokenToCursor(this.activeToken);
             for(i = 0; i < this.cachedsqfKeywords.length; ++i){
-                if(this.cachedsqfKeywords[i].indexOf(tokenToCursor) === 0 ) {
+                if(this.cachedsqfKeywords[i].toUpperCase().indexOf(tokenToCursor.toUpperCase()) === 0 ) {
                     $fhint = $("<span>")
                         .text(this.cachedsqfKeywords[i]);
                     hintlist.push($fhint);
+                    var poo = ($fhint[0]);
+                    //console.log(($($fhint[0]))[0].outerText.length);
+                    //console.log((poo.toString()).length);
                 }
             }
+            hintlist.sort(function(a,b){return (($(a[0]))[0].outerText.length - ($(b[0]))[0].outerText.length);});
             return {
                 hints: hintlist,
                 match: false,
