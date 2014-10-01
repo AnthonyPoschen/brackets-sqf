@@ -1,0 +1,1 @@
+contains a go script to build the doc list. storing it as part of the github for the mod so i dont have to rewrite it. ill try my best to make sure it doesnt get packaged in builds. and it was my first golang thing ever written since i saw this as a great time to learn a new language and try to step away from doing my lazy web shit in python. 

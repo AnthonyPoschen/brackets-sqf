@@ -8,7 +8,11 @@ define(function (require, exports, module) {
     FileUtils               = brackets.getModule("file/FileUtils"),
     TokenUtils              = brackets.getModule("utils/TokenUtils"),
     ProjectManager          = brackets.getModule("project/ProjectManager"),
-    CodeHintManager         = brackets.getModule("editor/CodeHintManager");
+    CodeHintManager         = brackets.getModule("editor/CodeHintManager"),
+    EditorManager           = brackets.getModule("editor/EditorManager"),
+    DocumentManager         = brackets.getModule("document/DocumentManager");
+    
+    var InlineDocsViewer = require("InlineDocsViewer");
     
     CodeMirror.defineMode("sqf", function(config) {
         var indentUnit = config.indentUnit;
@@ -19,7 +23,7 @@ define(function (require, exports, module) {
                 tokenString = token.token.string;
             return tokenString.substr(0, (tokenCursor - tokenStart));
         }   
-        
+
         var keywords = {
             "break": true,
             "case": true,
@@ -265,6 +269,35 @@ define(function (require, exports, module) {
                 lineComment: "//"
         };
     });
+    //--------------------------------------------------------------
+    // quick docs
+    var docs = JSON.parse(require('text!docs.json'));
+    function inlineProvider(hosteditor,pos){
+        // no multiline selection
+        var sel = hosteditor.getSelection();
+        if (sel.start.line !== sel.end.line) {
+            return null;
+        } 
+        var currentDoc = DocumentManager.getCurrentDocument().getText();
+        
+        var lines = currentDoc.split("\n");
+        var line = lines[sel.start.line];
+        var text = line.substr(sel.start.ch,sel.end.ch - sel.start.ch);
+        var result = new $.Deferred();
+        var array;
+        for(var i = 0; i < docs.length; ++i) {
+            if(docs[i].Name == text){
+                array = docs[i];
+            }
+        }
+        
+        var inlineWidget = new InlineDocsViewer(array.Name,"sqf",{SUMMARY:array.Desc, SYNTAX: array.Syn, URL:"https://community.bistudio.com/wiki/"+ array.Name,EXAMPLES: array.Examples, ADDITIONAL: array.Additional});
+        inlineWidget.load(hosteditor);
+        result.resolve(inlineWidget);
+        return result.promise();
+        
+    }
+    //--------------------------------------------------------------
 
     CodeMirror.defineMIME("text/x-sqf", "sqf");
 
@@ -276,4 +309,5 @@ define(function (require, exports, module) {
         lineComment: ["//","//"]
     });
     
+    EditorManager.registerInlineDocsProvider(inlineProvider);
 });
