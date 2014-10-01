@@ -3,7 +3,7 @@
     "title": "SQF Syntax for brackets",
     "homepage": "https://github.com/zanven42/brackets-sqf",
     "description": "Provides SQF syntax highlight via a CodeMirror mode for Brackets. SQF is used by Bohemia as their scripting language",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "author": "Anthony 'Zanven' Poschen",
     "license": "MIT",
     "engines": {

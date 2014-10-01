@@ -28,7 +28,7 @@ type note struct {
 */
 type syntax struct {
 	Syntax string
-	Params string
+	Params []string
 	Return string
 }
 type sqfinfo struct {
@@ -57,10 +57,12 @@ func scrape(ch chan sqfinfo, keys []string){
 				syn := syntax{}
 				count := len(s.Find("dd").Nodes)
 				s.Find("dd").Each(func(i int, s *goquery.Selection){
-					switch i {
-						case 0: syn.Syntax = s.Text()
-						case 1: if count == 3 {syn.Params = s.Text();} else {syn.Return = s.Text();}
-						case 2: syn.Return = s.Text()
+
+					switch  {
+					case i == 0: syn.Syntax = s.Text()
+					case ((i > 0) && (i < (count -1))): syn.Params = append(syn.Params,s.Text())
+					case i == (count -1): syn.Return = s.Text()
+
 					}
 				})
 				sqf.Syn = syn
@@ -78,6 +80,7 @@ func scrape(ch chan sqfinfo, keys []string){
 		})
 		ch <- sqf
 		fmt.Println(keys[i])
+
 	}
 	close(ch)
 }
