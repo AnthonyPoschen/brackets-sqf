@@ -13,6 +13,30 @@ define(function (require, exports, module) {
     DocumentManager         = brackets.getModule("document/DocumentManager");
     
     var InlineDocsViewer = require("InlineDocsViewer");
+    var keywords = {
+        "break": true,
+        "case": true,
+        "continue": true,
+        "default": true,
+        "else": true,
+        "for": true,
+        "if": true,
+        "return": true,
+        "select": true,
+        "switch": true
+    };
+    var atoms = {};
+    atoms = require('text!atoms.json');
+    atoms = JSON.parse(atoms);
+
+    // Hint start
+    var hintwords = [];
+    for(var i in atoms){
+        hintwords.push(i);
+    }
+    for(var i in keywords){
+        hintwords.push(i);
+    }    
     
     CodeMirror.defineMode("sqf", function(config) {
         var indentUnit = config.indentUnit;
@@ -24,30 +48,6 @@ define(function (require, exports, module) {
             return tokenString.substr(0, (tokenCursor - tokenStart));
         }   
 
-        var keywords = {
-            "break": true,
-            "case": true,
-            "continue": true,
-            "default": true,
-            "else": true,
-            "for": true,
-            "if": true,
-            "return": true,
-            "select": true,
-            "switch": true
-        };
-        var atoms = {};
-        atoms = require('text!atoms.json');
-        atoms = JSON.parse(atoms);
-
-        // Hint start
-        var hintwords = [];
-        for(var i in atoms){
-            hintwords.push(i);
-        }
-        for(var i in keywords){
-            hintwords.push(i);
-        }
         function SQFHints() {
             this.activeToken = "";
             this.lastToken = "";
@@ -290,7 +290,12 @@ define(function (require, exports, module) {
                 array = docs[i];
             }
         }
-        
+        // since url hardcoded in based off keywords remove all non keywords.
+        for(var i = 0; i < array.Additional.length; ++i){
+            if($.inArray(array.Additional[i],hintwords) == -1) {
+                array.Additional.splice(i,1);
+            }
+        }
         var inlineWidget = new InlineDocsViewer(array.Name,"sqf",{SUMMARY:array.Desc, SYNTAX: array.Syn, URL:"https://community.bistudio.com/wiki/"+ array.Name,EXAMPLES: array.Examples, ADDITIONAL: array.Additional});
         inlineWidget.load(hosteditor);
         result.resolve(inlineWidget);

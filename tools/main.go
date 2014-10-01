@@ -49,32 +49,35 @@ func scrape(ch chan sqfinfo, keys []string){
 		}
 		var sqf sqfinfo
 		sqf.Name = keys[i]
+		maincount := len(query.Find("body .mw-body .mw-content-ltr ._description dl").Nodes)
+		syn := syntax{}
 		query.Find("body .mw-body .mw-content-ltr ._description dl").Each(func(i int, s *goquery.Selection){
 			switch i {
 			case 1:
 				sqf.Desc = s.Find("dd").Text()
-			case 2: // for every dd setup the syntax array
-				syn := syntax{}
+			case 2,maincount - 3: // for every dd setup the syntax array
+				var alternate bool; if i == 2 {alternate = false;} else {alternate = true;}
 				count := len(s.Find("dd").Nodes)
 				s.Find("dd").Each(func(i int, s *goquery.Selection){
 
-					switch  {
-					case i == 0: syn.Syntax = s.Text()
-					case ((i > 0) && (i < (count -1))): syn.Params = append(syn.Params,s.Text())
-					case i == (count -1): syn.Return = s.Text()
+					switch  {// for now ignore alternate syntax's. as probs need a restructure of displaying to make it work. also not sure if needed since examples show the alternate syntax. we will see.
+					case i == 0: if alternate {syn.Syntax += "<br>(Alternate Syntax exists check Read more)"} else {syn.Syntax += s.Text();};
+					case ((i > 0) && (i < (count -1))): if alternate{}else{ syn.Params = append(syn.Params,s.Text());}
+					case i == (count -1): if alternate{} else {syn.Return = s.Text();}
 
 					}
+
 				})
 				sqf.Syn = syn
-			case 3:// examples push array of dd.
+			case maincount -2:// examples push array of dd.
 				s.Find("dd").Each(func(i int, s *goquery.Selection){
 					sqf.Examples = append(sqf.Examples,s.Text())
 				})
-			case 4: //additional info
+			case maincount - 1: //additional info
 				s.Find("dd a").Each(func(i int, s *goquery.Selection){
 					sqf.Additional = append(sqf.Additional,s.Text())
 				})
-			case 5: // notes
+			case maincount: // notes
 				// not using atm
 			}
 		})
