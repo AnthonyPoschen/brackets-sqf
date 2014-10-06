@@ -15,6 +15,7 @@ import (
 	"log"
 	"io/ioutil"
 	"encoding/json"
+	"strings"
 
 	//"github.com/PuerkitoBio/gocrawl"
 	"github.com/PuerkitoBio/goquery"
@@ -88,18 +89,34 @@ func scrape(ch chan sqfinfo, keys []string){
 	close(ch)
 }
 
-func main() {
-	query, err := goquery.NewDocument("https://community.bistudio.com/wiki/Category:Scripting_Commands_Arma_3")
+func GetKeyWords(ch chan string, address string) {
+
+	query, err := goquery.NewDocument(address)
 	if err != nil {
 		log.Fatal(err)
 	}
-	keywords := make([]string,0)
+	//
 
 	query.Find("body .mw-body .mw-content-ltr table tbody tr td ").Each(func(i int, s *goquery.Selection) {
 		s.Find("ul li a").Each(func(i int, s *goquery.Selection){
-			keywords = append(keywords,s.Text())
+			//
+			// replace spaces with underscores. (for lookup and use.)
+			ch <- (strings.Replace(s.Text(), " ", "_",-1))
 		})
 	})
+	close(ch)
+}
+
+func main() {
+	chKey1, chKey2 := make(chan string), make(chan string)
+	go GetKeyWords(chKey1,"https://community.bistudio.com/wiki/Category:Scripting_Commands_Arma_3")
+	go GetKeyWords(chKey2,"https://community.bistudio.com/wiki/Category:Arma_3:_Functions")
+	keywords := make([]string,0)
+	// start fetching all results from keywords search 1
+	for s := range chKey1 {
+		keywords = append(keywords,s)
+	}
+
 	// chop out the section we dont want information for.
 	index := -1
 	for p,v := range keywords {
@@ -108,8 +125,15 @@ func main() {
 			break
 		}
 	}
-	if index == -1 {return}
-	keywords = keywords[index:]
+	if index != -1 {keywords = keywords[index:];}
+	fmt.Println(keywords)
+
+	// start fetching results from BIS_fnc keywords
+	for s := range chKey2 {
+		keywords = append(keywords,s)
+	}
+	fmt.Println(keywords)
+
 
 	ch := make(chan sqfinfo,len(keywords))
 	go scrape(ch,keywords)
@@ -119,5 +143,7 @@ func main() {
 		sqflist = append(sqflist,i)
 	}
 	b,err :=json.Marshal(sqflist)
+	if err != nil {panic("cant marshal")}
 	ioutil.WriteFile("docs.json",b,0x777)
+
 }
